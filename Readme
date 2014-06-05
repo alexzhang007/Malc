@@ -1,0 +1,5 @@
+Mips Assemble Language Compiler (MALC) 
+1. Using flex/bison to compile mips assemble language to machine binary code.
+2. Import from VeSPA project and change it to adopt the MIPS instructions. 
+   2.1 Modify the Makefile and remove the vasm.c that is same as y.tab.c
+   2.2 Make it accpet the $s0
