@@ -3,3 +3,5 @@ Mips Assemble Language Compiler (MALC)
 2. Import from VeSPA project and change it to adopt the MIPS instructions. 
    2.1 Modify the Makefile and remove the vasm.c that is same as y.tab.c
    2.2 Make it accpet the $s0
+3. Add MIPS instructions
+   3.1 Add the lw/LW instruction

@@ -148,6 +148,16 @@ for (i = 0; i < curr_stmt; i++)
             print_code(code,4,&lc);
             break;
 
+        case LW_OP :
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) <<26;   //6bit op
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            check_immed(sym_table[stmt[i].op3].value,16,i);
+            code |= (0xffff & sym_table[stmt[i].op3].value);
+            print_code(code,4,&lc);
+            break;
+
         case LDI_OP:
             code = 0;
             code |= (0x1f & stmt[i].op_code) << 27;

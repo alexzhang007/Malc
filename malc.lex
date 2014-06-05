@@ -39,6 +39,7 @@ cmp|CMP		{yylval = NONE;		return(CMP);	}
 hlt|HLT		{yylval = NONE;		return(HLT);	}
 jmp|JMP		{yylval = NONE;		return(JMP);	}
 jmpl|JMPL	{yylval = NONE;		return(JMPL);	}
+lw|LW           {yylval = NONE;         return(LW);     }
 ld|LD		{yylval = NONE;		return(LD);	}
 ldi|LDI		{yylval = NONE;		return(LDI);	}
 ldx|LDX		{yylval = NONE;		return(LDX);	}
@@ -55,14 +56,17 @@ sub|SUB		{yylval = NONE;		return(SUB);	}
 $s{digit}+	{	/* register, e.g. r24				*/
 		yylval = add_symbol(yytext);
 		/* extract register number from string			*/
-		sscanf(sym_table[yylval].name,"s%d",&sym_table[yylval].value);
+		sscanf(sym_table[yylval].name,"$s%d",&sym_table[yylval].value);
+                printf ("Alzhang: value is %d\n",sym_table[yylval].value );
+                process_reg('s', yylval);
 		return(REG_NUM);
 		}
 
 $S{digit}+	{	/* register, e.g. R24				*/
 		yylval = add_symbol(yytext);
 		/* extract register number from string			*/
-		sscanf(sym_table[yylval].name,"S%d",&sym_table[yylval].value);
+		sscanf(sym_table[yylval].name,"$S%d",&sym_table[yylval].value);
+                process_reg('s', yylval);
 		return(REG_NUM);
 		}
 
@@ -105,6 +109,10 @@ $S{digit}+	{	/* register, e.g. R24				*/
 
 ":"		{yylval = NONE;		return(':');	}
 
+"("		{yylval = NONE;		return('(');	}
+
+")"		{yylval = NONE;		return(')');	}
+
 "\n"		{
 		curr_line++;		/* looking at next source line	*/
 		}
@@ -117,6 +125,29 @@ $S{digit}+	{	/* register, e.g. R24				*/
 
 %%
 /* start of programs section						*/
+//Add the offset according to https://github.com/alexzhang007/MipsCpu/wiki/Figure2.18
+void process_reg(char type, int index){
+    switch (type) {
+        case 's' : 
+                  sym_table[index].value  += 16 ;
+                  break;
+        case 'a' :
+                  sym_table[index].value  += 4 ;
+                  break;
+        case 't' :
+                  if (sym_table[index].value <8) {
+                      sym_table[index].value  += 8 ;
+                  }else if (sym_table[index].value < 10) {
+                      sym_table[index].value  += 16 ;
+                  }else {
+                      sprintf(err_msg,"no such register $t%d",sym_table[index].value );
+                      err_exit(REG_OFLW, err_msg);
+                  }    
+                  break;
+
+    }
+
+}
 
 
 

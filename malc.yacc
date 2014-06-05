@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include "gvars.h"		/* declaration of global variables	*/
 
+void  process_reg(char, int);
+
 int	temp1;		/* temp used to add some implicit ops		*/
 int	temp2;		/* temp used to add some implicit ops		*/
 char	temp_str[80];	/* temp string used for conversions		*/
@@ -28,6 +30,7 @@ int	lc = 0;		/* location counter--# bytes for this instr	*/
 %token	HLT			/* yylval = NONE			*/
 %token	JMP			/* yylval = NONE			*/
 %token	JMPL			/* yylval = NONE			*/
+%token	LW			/* yylval = NONE			*/
 %token	LD			/* yylval = NONE			*/
 %token	LDI			/* yylval = NONE			*/
 %token	LDX			/* yylval = NONE			*/
@@ -106,6 +109,10 @@ stmt	:	ADD	reg ',' reg ',' reg
 			{
 			add_stmt(JMPL_OP,JMP_CODE,$2,$4,$7,IMMEDIATE,WORD_SIZE);
 			}
+        |       LW      reg ',' expr '(' reg ')'
+                        {
+			add_stmt(LW_OP,LW_CODE,$6,$2,$4,REG_TYPE,WORD_SIZE);
+                        }
 	|	LD	reg ',' IDENTIFIER
 			{
 			add_stmt(LD_OP,LD_CODE,$2,$4,zero_ptr,IMMEDIATE,WORD_SIZE);
@@ -277,7 +284,9 @@ expr	:	value
 
 
 reg	:	REG_NUM
-			{$$ = $1;	}
+			{
+                        $$ = $1;	
+                        }
 	;
 
 
@@ -297,9 +306,9 @@ int	n;	/* number of bytes for this instr			*/
 {
 	stmt[curr_stmt].op_type = operation;
 	stmt[curr_stmt].op_code = code;
-	stmt[curr_stmt].op1 = o1;
-	stmt[curr_stmt].op2 = o2;
-	stmt[curr_stmt].op3 = o3;
+	stmt[curr_stmt].op1 = o1;   //Rs[25:21]
+	stmt[curr_stmt].op2 = o2;   //Rt[20:16]
+	stmt[curr_stmt].op3 = o3;   //Rd[15:11]
 	stmt[curr_stmt].misc = misc;
 	stmt[curr_stmt].line_num = curr_line;
 

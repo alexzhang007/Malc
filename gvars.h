@@ -28,6 +28,7 @@ defined for the convenience of the assembler.				*/
 #define  DOT_ALLOC_OP	19
 #define  DOT_ORG_OP	20
 #define  XOR_OP         21
+#define  LW_OP		22
 
 /* Define all of the op-code values.  Note that there are fewer
 op-codes than there are operations visible to the assembler.  These
@@ -48,6 +49,7 @@ are the values that will actually appear in the object code file.	*/
 #define	ST_CODE		13
 #define	STX_CODE	14
 #define	HLT_CODE	31
+#define	LW_CODE	        35
 
 /* Define all of the possible branch conditions.  Stored in stmt[].misc	*/
 #define	BRA_COND	0
@@ -76,6 +78,7 @@ are the values that will actually appear in the object code file.	*/
 #define	FILE_ERROR	9	/* error opening a file			*/
 #define	BAD_SYM_TYPE	10	/* invalid type in symbol table		*/
 #define	BAD_OPTYPE	11	/* wrong operation type specified	*/
+#define	REG_OFLW	12	/* register number overflow     	*/
 
 /* define some useful macros						*/
 #define	max(A, B) ((A) > (B) ? (A) : (B))
