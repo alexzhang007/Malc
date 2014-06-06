@@ -38,38 +38,55 @@ for (i = 0; i < curr_stmt; i++)
         {
         case ADD_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
-            code |= (0x1f & sym_table[stmt[i].op1].value) << 22;
-            code |= (0x1f & sym_table[stmt[i].op2].value) << 17;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & ADD_FUNC);
+            print_code(code,4,&lc);
+            break;
+
+        case ADDI_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
             if (stmt[i].misc == IMMEDIATE)
                {
                check_immed(sym_table[stmt[i].op3].value,16,i);
-               code |= 1 << 16;
                code |= (0xffff & sym_table[stmt[i].op3].value);
                }
             else {
-               code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+               err_exit("Unknown ADDI instruction.",BAD_OPTYPE);
                }
             print_code(code,4,&lc);
             break;
 
         case AND_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
-            code |= (0x1f & sym_table[stmt[i].op1].value) << 22;
-            code |= (0x1f & sym_table[stmt[i].op2].value) << 17;
-            if (stmt[i].misc == IMMEDIATE)
-               {
-               check_immed(sym_table[stmt[i].op3].value,16,i);
-               code |= 1 << 16;
-               code |= (0xffff & sym_table[stmt[i].op3].value);
-               }
-            else {
-               code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
-               }
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & AND_FUNC);
             print_code(code,4,&lc);
             break;
 
+        case ANDI_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            if (stmt[i].misc == IMMEDIATE)
+               {
+               check_immed(sym_table[stmt[i].op3].value,16,i);
+               code |= (0xffff & sym_table[stmt[i].op3].value);
+               }
+            else {
+               err_exit("Unknown ANDI instruction.",BAD_OPTYPE);
+               }
+            print_code(code,4,&lc);
+            break;
         case BRANCH_OP:
             code = 0;
             code |= (0x1f & stmt[i].op_code) << 27;
@@ -82,6 +99,21 @@ for (i = 0; i < curr_stmt; i++)
             br_displ = sym_table[stmt[i].op1].value - (lc + 4);
             check_branch(br_displ,23,i);
             code |= (0x7fffff & br_displ);
+            print_code(code,4,&lc);
+            break;
+
+        case BEQ_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            if (stmt[i].misc == IMMEDIATE) {
+                br_displ = sym_table[stmt[i].op3].value ;
+                check_branch(br_displ,16,i);
+                code |= (0xffff & br_displ);
+            }else {
+                err_exit("Unknown BEQ instruction.",BAD_OPTYPE);
+            }
             print_code(code,4,&lc);
             break;
 
@@ -110,14 +142,11 @@ for (i = 0; i < curr_stmt; i++)
 
         case JMP_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
-            code |= (0x1f & 0) << 22; /* this step is obviously not needed */
-            code |= (0x1f & sym_table[stmt[i].op1].value) << 17;
-            code |= 0 << 16;	/* this step is obviously not needed	*/
+            code |= (0x3f & stmt[i].op_code) << 26;
             if (stmt[i].misc == IMMEDIATE)
                {
-               check_immed(sym_table[stmt[i].op2].value,16,i);
-               code |= (0xffff & sym_table[stmt[i].op2].value);
+               check_immed(sym_table[stmt[i].op1].value,26,i);
+               code |= (0x3ffffff & sym_table[stmt[i].op1].value);
                }
             print_code(code,4,&lc);
             break;
@@ -191,7 +220,17 @@ for (i = 0; i < curr_stmt; i++)
 
         case NOP_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
+            code |= (0x1f & stmt[i].op_code) << 26;
+            print_code(code,4,&lc);
+            break;
+
+        case NOR_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & NOR_FUNC);
             print_code(code,4,&lc);
             break;
 
@@ -205,17 +244,26 @@ for (i = 0; i < curr_stmt; i++)
 
         case OR_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
-            code |= (0x1f & sym_table[stmt[i].op1].value) << 22;
-            code |= (0x1f & sym_table[stmt[i].op2].value) << 17;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & OR_FUNC);
+            print_code(code,4,&lc);
+            break;
+
+        case ORI_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
             if (stmt[i].misc == IMMEDIATE)
                {
                check_immed(sym_table[stmt[i].op3].value,16,i);
-               code |= 1 << 16;
                code |= (0xffff & sym_table[stmt[i].op3].value);
                }
             else {
-               code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+               err_exit("Unknown ORI instruction.",BAD_OPTYPE);
                }
             print_code(code,4,&lc);
             break;
@@ -234,6 +282,51 @@ for (i = 0; i < curr_stmt; i++)
             else {
                code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
                }
+            print_code(code,4,&lc);
+            break;
+
+        case SLL_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            if (stmt[i].misc == IMMEDIATE)
+               {
+               check_immed(sym_table[stmt[i].shamt].value,5,i);
+               code |= (0x1f & sym_table[stmt[i].shamt].value)<<6;
+               }
+            else {
+               err_exit("Unknown SLL instruction.",BAD_OPTYPE);
+               }
+            print_code(code,4,&lc);
+            break;
+
+        case SRL_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            if (stmt[i].misc == IMMEDIATE)
+               {
+               check_immed(sym_table[stmt[i].shamt].value,5,i);
+               code |= (0x1f & sym_table[stmt[i].shamt].value)<<6;
+               }
+            else {
+               err_exit("Unknown SLL instruction.",BAD_OPTYPE);
+               }
+            code |= (0x3f & SRL_FUNC) ;
+            print_code(code,4,&lc);
+            break;
+
+        case SLT_OP:
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & SLT_FUNC);
             print_code(code,4,&lc);
             break;
 
@@ -264,18 +357,21 @@ for (i = 0; i < curr_stmt; i++)
 
         case SUB_OP:
             code = 0;
-            code |= (0x1f & stmt[i].op_code) << 27;
-            code |= (0x1f & sym_table[stmt[i].op1].value) << 22;
-            code |= (0x1f & sym_table[stmt[i].op2].value) << 17;
-            if (stmt[i].misc == IMMEDIATE)
-               {
-               check_immed(sym_table[stmt[i].op3].value,16,i);
-               code |= 1 << 16;
-               code |= (0xffff & sym_table[stmt[i].op3].value);
-               }
-            else {
-               code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
-               }
+            code |= (0x1f & stmt[i].op_code) << 26;
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            code |= (0x1f & sym_table[stmt[i].op3].value) << 11;
+            code |= (0x3f & SUB_FUNC);
+            print_code(code,4,&lc);
+            break;
+
+        case SW_OP :
+            code = 0;
+            code |= (0x3f & stmt[i].op_code) <<26;   //6bit op
+            code |= (0x1f & sym_table[stmt[i].op1].value) << 21;
+            code |= (0x1f & sym_table[stmt[i].op2].value) << 16;
+            check_immed(sym_table[stmt[i].op3].value,16,i);
+            code |= (0xffff & sym_table[stmt[i].op3].value);
             print_code(code,4,&lc);
             break;
 

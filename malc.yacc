@@ -24,8 +24,12 @@ int	lc = 0;		/* location counter--# bytes for this instr	*/
 /* tokens and values returned by lexical analyzer			*/
 
 %token	ADD			/* yylval = NONE			*/
+%token	ADDI			/* yylval = NONE			*/
 %token	AND			/* yylval = NONE			*/
+%token	ANDI			/* yylval = NONE			*/
 %token	BRANCH			/* yylval = branch condition		*/
+%token	BEQ			/* yylval = branch condition		*/
+%token	BNE			/* yylval = branch condition		*/
 %token	CMP			/* yylval = NONE			*/
 %token	HLT			/* yylval = NONE			*/
 %token	JMP			/* yylval = NONE			*/
@@ -36,12 +40,18 @@ int	lc = 0;		/* location counter--# bytes for this instr	*/
 %token	LDX			/* yylval = NONE			*/
 %token	MOV			/* yylval = NONE			*/
 %token	NOP			/* yylval = NONE			*/
+%token	NOR			/* yylval = NONE			*/
 %token	NOT			/* yylval = NONE			*/
 %token	OR			/* yylval = NONE			*/
+%token	ORI			/* yylval = NONE			*/
 %token  XOR                     /* yylval = NONE                        */
+%token	SLL			/* yylval = NONE			*/
+%token	SRL			/* yylval = NONE			*/
+%token	SLT			/* yylval = NONE			*/
 %token	ST			/* yylval = NONE			*/
 %token	STX			/* yylval = NONE			*/
 %token	SUB			/* yylval = NONE			*/
+%token	SW			/* yylval = NONE			*/
 %token	IDENTIFIER		/* yylval = pointer into symbol table	*/
 %token	NUMBER			/* yylval = pointer into symbol table	*/
 %token	REG_NUM			/* yylval = pointer into symbol table	*/
@@ -50,8 +60,6 @@ int	lc = 0;		/* location counter--# bytes for this instr	*/
 %token	DOT_ALLOC		/* yylval = NONE			*/
 %token	DOT_ORG			/* yylval = NONE			*/
 %token	DOT_EQU			/* yylval = NONE			*/
-
-
 
 
 /* start of rules section						*/
@@ -63,23 +71,27 @@ stmt_list :	stmt
 
 stmt	:	ADD	reg ',' reg ',' reg
 			{
-			add_stmt(ADD_OP,ADD_CODE,$2,$4,$6,REG_TYPE,WORD_SIZE);
+			add_stmt(ADD_OP,ADD_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
 			}
-	|	ADD	reg ',' reg ',' '#' expr
+	|	ADDI	reg ',' reg ',' '#' expr
 			{
-			add_stmt(ADD_OP,ADD_CODE,$2,$4,$7,IMMEDIATE,WORD_SIZE);
+			add_stmt(ADDI_OP,ADDI_CODE,$4,$2,$7,IMMEDIATE,WORD_SIZE);
 			}
 	|	AND	reg ',' reg ',' reg
 			{
-			add_stmt(AND_OP,AND_CODE,$2,$4,$6,REG_TYPE,WORD_SIZE);
+			add_stmt(AND_OP,AND_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
 			}
-	|	AND	reg ',' reg ',' '#' expr
+	|	ANDI	reg ',' reg ',' '#' expr
 			{
-			add_stmt(AND_OP,AND_CODE,$2,$4,$7,IMMEDIATE,WORD_SIZE);
+			add_stmt(ANDI_OP,ANDI_CODE,$4,$2,$7,IMMEDIATE,WORD_SIZE);
 			}
 	|	BRANCH	IDENTIFIER
 			{
 			add_stmt(BRANCH_OP,BXX_CODE,$2,zero_ptr,zero_ptr,$1,WORD_SIZE);
+			}
+	|	BEQ     reg ',' reg ','	IDENTIFIER
+			{
+			add_stmt(BEQ_OP,BEQ_CODE,$2,$4,$6,IMMEDIATE,WORD_SIZE);
 			}
 	|	CMP	reg ',' reg
 			{
@@ -97,9 +109,9 @@ stmt	:	ADD	reg ',' reg ',' reg
 			{
 			add_stmt(JMP_OP,JMP_CODE,$2,zero_ptr,zero_ptr,REG_TYPE,WORD_SIZE);
 			}
-	|	JMP	reg ',' '#' expr
+	|	JMP	IDENTIFIER
 			{
-			add_stmt(JMP_OP,JMP_CODE,$2,$5,zero_ptr,IMMEDIATE,WORD_SIZE);
+			add_stmt(JMP_OP,JMP_CODE,$2,zero_ptr,zero_ptr,IMMEDIATE,WORD_SIZE);
 			}
 	|	JMPL	reg ',' reg
 			{
@@ -137,19 +149,35 @@ stmt	:	ADD	reg ',' reg ',' reg
 			{
 			add_stmt(NOP_OP,NOP_CODE,zero_ptr,zero_ptr,zero_ptr,REG_TYPE,WORD_SIZE);
 			}
+	|	NOR	reg ',' reg ',' reg
+			{
+			add_stmt(NOR_OP,NOR_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
+			}
 	|	NOT	reg ',' reg
 			{
 			add_stmt(NOT_OP,NOT_CODE,$2,$4,zero_ptr,REG_TYPE,WORD_SIZE);
 			}
 	|	OR	reg ',' reg ',' reg
 			{
-			add_stmt(OR_OP,OR_CODE,$2,$4,$6,REG_TYPE,WORD_SIZE);
+			add_stmt(OR_OP,OR_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
 			}
-	|	OR	reg ',' reg ',' '#' expr
+	|	ORI	reg ',' reg ',' expr
 			{
-			add_stmt(OR_OP,OR_CODE,$2,$4,$7,IMMEDIATE,WORD_SIZE);
+			add_stmt(OR_OP,OR_CODE,$4,$2,$6,IMMEDIATE,WORD_SIZE);
 			}
-       |	ST	IDENTIFIER ',' reg
+	|	SLT	reg ',' reg ',' reg
+			{
+			add_stmt(SLT_OP,SLT_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
+			}
+	|	SLL	reg ',' reg ',' expr
+			{
+			add_stmt(SLL_OP,SLL_CODE,zero_ptr,$4,$2,IMMEDIATE,WORD_SIZE,$6);
+			}
+	|	SRL	reg ',' reg ',' expr
+			{
+			add_stmt(SRL_OP,SRL_CODE,zero_ptr,$4,$2,IMMEDIATE,WORD_SIZE,$6);
+			}
+        |	ST	IDENTIFIER ',' reg
 			{
 			add_stmt(ST_OP,ST_CODE,$2,$4,zero_ptr,IMMEDIATE,WORD_SIZE);
 			}
@@ -163,12 +191,16 @@ stmt	:	ADD	reg ',' reg ',' reg
 			}
 	|	SUB	reg ',' reg ',' reg
 			{
-			add_stmt(SUB_OP,SUB_CODE,$2,$4,$6,REG_TYPE,WORD_SIZE);
+			add_stmt(SUB_OP,SUB_CODE,$4,$6,$2,REG_TYPE,WORD_SIZE);
 			}
 	|	SUB	reg ',' reg ',' '#' expr
 			{
 			add_stmt(SUB_OP,SUB_CODE,$2,$4,$7,IMMEDIATE,WORD_SIZE);
 			}
+        |       SW      reg ',' expr '(' reg ')'
+                        {
+			add_stmt(SW_OP,SW_CODE,$6,$2,$4,REG_TYPE,WORD_SIZE);
+                        }
 	|	DOT_ALLOC expr
 			{
 			add_stmt(DOT_ALLOC_OP,0,$2,zero_ptr,zero_ptr,PSEUDO_OP,sym_table[$2].value);
@@ -295,14 +327,15 @@ reg	:	REG_NUM
 %%
 
 /* add opcode, operands, etc. to current statement			*/
-add_stmt(operation,code,o1,o2,o3,misc,n)
+add_stmt(operation,code,o1,o2,o3,misc,n, shamt)
 int	operation;	/* type of operation, e.g. ADD, JMPL		*/
 int	code;	/* the opcode that will appear in the object file	*/
 int	o1;	/* pointer into sym_table[] for operand 1		*/
 int	o2;	/* pointer into sym_table[] for operand 2		*/
 int	o3;	/* pointer into sym_table[] for operand 3		*/
-int	misc;	/* misc info for this instruction			*/
+int	misc;	/* misc info for this instruction, can also used to functor for RT format instruction*/
 int	n;	/* number of bytes for this instr			*/
+int     shamt;  /* shift instruction*/
 {
 	stmt[curr_stmt].op_type = operation;
 	stmt[curr_stmt].op_code = code;
@@ -310,6 +343,7 @@ int	n;	/* number of bytes for this instr			*/
 	stmt[curr_stmt].op2 = o2;   //Rt[20:16]
 	stmt[curr_stmt].op3 = o3;   //Rd[15:11]
 	stmt[curr_stmt].misc = misc;
+        stmt[curr_stmt].shamt = shamt;
 	stmt[curr_stmt].line_num = curr_line;
 
 	/* update lc by appropriate number of bytes, or jam it to the

@@ -5,3 +5,4 @@ Mips Assemble Language Compiler (MALC)
    2.2 Make it accpet the $s0
 3. Add MIPS instructions
    3.1 Add the lw/LW instruction
+   3.2 Add the add, sub, sw, and, or, nor, andi, nori, sll, srl, beq, slt, jmp

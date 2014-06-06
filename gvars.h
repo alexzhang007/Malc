@@ -7,7 +7,7 @@
 /* List all of the operations visible to the assembler.	  These are
 defined for the convenience of the assembler.				*/
 #define  ADD_OP		0
-#define  AND_OP		1
+#define  AND_OP	        1  	
 #define  BRANCH_OP	2
 #define  CMP_OP		3
 #define  HLT_OP		4
@@ -29,20 +29,32 @@ defined for the convenience of the assembler.				*/
 #define  DOT_ORG_OP	20
 #define  XOR_OP         21
 #define  LW_OP		22
+#define  ADDI_OP	23
+#define  SW_OP	        24
+#define  ANDI_OP        25
+#define  ORI_OP         26
+#define  NOR_OP         27
+#define  SLT_OP         28
+#define  SLL_OP         29
+#define  SRL_OP         30
+#define  BEQ_OP         31
+#define  BNE_OP         32
 
 /* Define all of the op-code values.  Note that there are fewer
 op-codes than there are operations visible to the assembler.  These
 are the values that will actually appear in the object code file.	*/
 #define	NOP_CODE	0
-#define	ADD_CODE	1
-#define	SUB_CODE	2
-#define	OR_CODE		3
-#define	AND_CODE	4
+#define	ADD_CODE	0
+#define	ADDI_CODE	18
+#define	SUB_CODE	0
+#define	OR_CODE		0
+#define	AND_CODE	0
+#define	NOR_CODE	0
 #define	NOT_CODE	5
 #define XOR_CODE	6
 #define	CMP_CODE	7
 #define	BXX_CODE	8
-#define	JMP_CODE	9
+#define	JMP_CODE	2
 #define	LD_CODE		10
 #define	LDI_CODE	11
 #define	LDX_CODE	12
@@ -50,6 +62,25 @@ are the values that will actually appear in the object code file.	*/
 #define	STX_CODE	14
 #define	HLT_CODE	31
 #define	LW_CODE	        35
+#define SW_CODE         43
+#define ANDI_CODE       12
+#define ORI_CODE        13
+#define BEQ_CODE        4
+#define BNE_CODE        5
+#define SLT_CODE        0
+#define SLL_CODE        0
+#define SRL_CODE        0
+#define BEQ_CODE        4
+#define BNE_CODE        5
+
+/* Define all of the functor values for RT-format instuctions*/
+#define ADD_FUNC        32
+#define SUB_FUNC        34
+#define AND_FUNC        36
+#define OR_FUNC         37
+#define NOR_FUNC        39
+#define SRL_FUNC        2
+#define SLT_FUNC        42
 
 /* Define all of the possible branch conditions.  Stored in stmt[].misc	*/
 #define	BRA_COND	0
@@ -125,7 +156,8 @@ struct	{
 	int	op1;		/* pointer to sym_table[] for operand 1	*/
 	int	op2;		/* pointer to sym_table[] for operand 2	*/
 	int	op3;		/* pointer to sym_table[] for operand 3	*/
-	int	misc;		/* is src2 a REG_TYPE or IMMEDIATE	*/
+	int	misc;		/* is src2 a REG_TYPE or IMMEDIATE or functor*/
+        int     shamt;          /* shamt for shift instruction*/
 	int	line_num;	/* input source line number for this stmt
 				   the type of branch condition		*/
 	}	stmt[MAX_ISTMT];
