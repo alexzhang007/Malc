@@ -425,12 +425,12 @@ int    *lc;        /* current program counter value        */
 
     /* Print the address at which these bytes should be loaded
        into memory, preceded by "@".                */
-    fprintf(fp,"@%04x",*lc);
+    fprintf(fp,"@%04x ",*lc);
 
     /* print the object code one byte at a time in big-endian order */
     for (i = count; i >= 1; i--)
         {
-        fprintf(fp," %02x",(0xff & (code >> (8 * (i-1))) ));
+        fprintf(fp,"%02x",(0xff & (code >> (8 * (i-1))) ));
         }
 
     /* End with a newline character.                */
